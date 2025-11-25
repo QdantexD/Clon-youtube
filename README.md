@@ -63,6 +63,59 @@ Un clon moderno y avanzado de YouTube construido con React, Vite y la API de You
 5. **Abrir en el navegador**
    - Navega a `http://localhost:5173`
 
+## 🚀 Despliegue en GitHub Pages
+
+### Opción 1: Deploy Automático (Recomendado)
+
+El proyecto está configurado con GitHub Actions para deploy automático:
+
+1. **Habilitar GitHub Pages en tu repositorio**
+   - Ve a `Settings` > `Pages` en tu repositorio de GitHub
+   - En `Source`, selecciona `GitHub Actions`
+
+2. **Hacer push a la rama main**
+   ```bash
+   git add .
+   git commit -m "Prepare for GitHub Pages"
+   git push origin main
+   ```
+
+3. **Esperar el deploy**
+   - Ve a la pestaña `Actions` en tu repositorio
+   - El workflow se ejecutará automáticamente
+   - Una vez completado, tu sitio estará disponible en:
+     `https://tu-usuario.github.io/Clon-youtube/`
+
+### Opción 2: Deploy Manual
+
+1. **Construir el proyecto**
+   ```bash
+   npm run build
+   ```
+
+2. **Instalar gh-pages (si no está instalado)**
+   ```bash
+   npm install --save-dev gh-pages
+   ```
+
+3. **Desplegar**
+   ```bash
+   npm run deploy
+   ```
+
+4. **Configurar GitHub Pages**
+   - Ve a `Settings` > `Pages` en tu repositorio
+   - En `Source`, selecciona la rama `gh-pages`
+   - Tu sitio estará disponible en unos minutos
+
+### ⚙️ Configuración del Base Path
+
+Si tu repositorio tiene un nombre diferente a `Clon-youtube`, actualiza el `base` en `vite.config.js`:
+
+```js
+base: process.env.NODE_ENV === 'production' ? '/tu-nombre-repo/' : '/',
+```
+
 ## 🏗️ Estructura del Proyecto
 
 ```
