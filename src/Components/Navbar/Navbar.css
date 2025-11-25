@@ -5,40 +5,152 @@ nav {
     position: sticky;
     top: 0;
     z-index: 10;
+    background: var(--nav-bg, #fff);
+    transition: background 0.3s ease;
+}
+
+[data-theme="dark"] nav {
+    background: var(--nav-bg, #212121);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .nav-left .menu-icon {
     width: 22px;
     margin-right: 25px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
+
+.nav-left .menu-icon:hover {
+    transform: scale(1.1);
+}
+
 .nav-left .logo {
     width: 130px;
+    transition: transform 0.2s ease;
+}
+
+.nav-left .logo:hover {
+    transform: scale(1.05);
+}
+
+.nav-middle {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 20px;
 }
 
 .nav-middle .search-box {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color, #ccc);
     margin-right: 15px;
     padding: 8px 12px;
     border-radius: 25px;
+    background: var(--search-bg, #fff);
+    flex: 1;
+    transition: all 0.3s ease;
 }
 
-.nav-middle .search-box input{
-    width: 400px;
+.nav-middle .search-box:focus-within {
+    border-color: var(--primary-color, #065fd4);
+    box-shadow: 0 0 0 2px rgba(6, 95, 212, 0.1);
+}
+
+.nav-middle .search-box input {
+    flex: 1;
     border: 0;
     outline: 0;
     background: transparent;
+    color: var(--text-color, #000);
+    font-size: 14px;
+}
+
+.nav-middle .search-box input::placeholder {
+    color: var(--placeholder-color, #999);
 }
 
 .nav-middle .search-box img {
     width: 15px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
-.nav-right img {
+.nav-middle .search-box img:hover {
+    transform: scale(1.1);
+}
+
+.voice-search-container {
+    display: flex;
+    align-items: center;
+}
+
+.voice-search-icon {
+    width: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.voice-search-icon:hover {
+    background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-right .nav-icon {
     width: 25px;
-    margin-right: 25px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.nav-right .nav-icon:hover {
+    transform: scale(1.1);
 }
 
 .nav-right .user-icon {
     width: 35px;
     border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.nav-right .user-icon:hover {
+    transform: scale(1.1);
+}
+
+.theme-toggle {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+@media (max-width: 768px) {
+    .nav-middle {
+        max-width: 200px;
+    }
+    
+    .nav-middle .search-box input {
+        width: 100px;
+    }
+    
+    .voice-search-icon {
+        display: none;
+    }
+    
+    .nav-right .nav-icon {
+        margin-right: 10px;
+    }
 }

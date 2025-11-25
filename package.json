@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Clon avanzado de YouTube desarrollado con React y Vite - Proyecto educativo",
+  "author": "Eddi Andreé Salazar Matos",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -1,21 +1,142 @@
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: sans-serif;
-
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-a{
+:root {
+    /* Light Theme Colors */
+    --primary-color: #c00;
+    --primary-hover: #aa0000;
+    --primary-light: rgba(204, 0, 0, 0.1);
+    --secondary-bg: #f2f2f2;
+    --text-color: #030303;
+    --secondary-text: #606060;
+    --border-color: #e0e0e0;
+    --hover-bg: rgba(0, 0, 0, 0.05);
+    --nav-bg: #fff;
+    --sidebar-bg: #fff;
+    --search-bg: #fff;
+    --description-bg: #f9f9f9;
+    --thumbnail-bg: #000;
+    --placeholder-color: #999;
+    --active-bg: rgba(204, 0, 0, 0.1);
+    --scrollbar-color: #ccc;
+    --scrollbar-hover: #999;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme Colors */
+    --primary-color: #ff0000;
+    --primary-hover: #ff3333;
+    --primary-light: rgba(255, 0, 0, 0.2);
+    --secondary-bg: #303030;
+    --text-color: #fff;
+    --secondary-text: #aaa;
+    --border-color: #404040;
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --nav-bg: #212121;
+    --sidebar-bg: #212121;
+    --search-bg: #121212;
+    --description-bg: #181818;
+    --thumbnail-bg: #000;
+    --placeholder-color: #666;
+    --active-bg: rgba(255, 0, 0, 0.2);
+    --scrollbar-color: #555;
+    --scrollbar-hover: #777;
+}
+
+body {
+    background: var(--secondary-bg, #f9f9f9);
+    color: var(--text-color, #030303);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+a {
     text-decoration: none;
-    color: #5a5a5a;
+    color: var(--text-color, #030303);
+    transition: color 0.2s ease;
 }
 
 img {
     cursor: pointer;
+    user-select: none;
 }
 
 .flex-div {
     display: flex;
     align-items: center;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for body */
+body::-webkit-scrollbar {
+    width: 10px;
+}
+
+body::-webkit-scrollbar-track {
+    background: var(--secondary-bg, #f9f9f9);
+}
+
+body::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color, #ccc);
+    border-radius: 5px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover, #999);
+}
+
+[data-theme="dark"] body::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color, #555);
+}
+
+[data-theme="dark"] body::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover, #777);
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+a:focus {
+    outline: 2px solid var(--primary-color, #c00);
+    outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+    background: var(--primary-light, rgba(204, 0, 0, 0.2));
+    color: var(--text-color, #030303);
+}
+
+/* Loading animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
 }

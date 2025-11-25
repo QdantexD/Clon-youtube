@@ -1,52 +1,120 @@
-.sidebar{
-    background: #fff;
+.sidebar {
+    background: var(--sidebar-bg, #fff);
     width: 15%;
     height: 100vh;
     position: fixed;
     top: 0;
     padding-left: 2%;
     padding-top: 80px;
+    overflow-y: auto;
+    transition: width 0.3s ease, background 0.3s ease;
+    z-index: 5;
+}
+
+[data-theme="dark"] .sidebar {
+    background: var(--sidebar-bg, #212121);
 }
 
 .shortcut-links img {
     width: 20px;
     margin-right: 20px;
+    transition: transform 0.2s ease;
 }
 
 .side-link {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
     width: fit-content;
     flex-wrap: wrap;
     cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.side-link:hover {
+    background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.side-link:hover img {
+    transform: scale(1.1);
+}
+
+.side-link p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-color, #000);
+    transition: color 0.2s ease;
 }
 
 .sidebar hr {
     border: 0;
-    height: 1;
-    background: #ccc;
+    height: 1px;
+    background: var(--border-color, #ccc);
     width: 85%;
+    margin: 12px 0;
 }
 
-.subscribed-list h3{
+.subscribed-section {
+    margin-top: 8px;
+}
+
+.subscribed-section h3 {
     font-size: 13px;
-    margin: 20px 0;
-    color: #5a5a5a;
+    margin: 16px 0 12px 0;
+    color: var(--secondary-text, #5a5a5a);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.subscribed-list img {
-    width: 25px;
+.sidelink {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.sidelink:hover {
+    background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.subscribed-section img {
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    margin-right: 20px;
+    margin-right: 16px;
+    object-fit: cover;
+}
+
+.subscribed-section p {
+    font-size: 14px;
+    color: var(--text-color, #000);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-subscriptions {
+    font-size: 12px;
+    color: var(--secondary-text, #999);
+    font-style: italic;
+    padding: 8px 12px;
 }
 
 .small-sidebar {
     width: 5%;
+    padding-left: 1%;
 }
 
 .small-sidebar p {
-    display: none !important;;
+    display: none !important;
 }
 
 .small-sidebar h3 {
@@ -55,10 +123,70 @@
 
 .small-sidebar hr {
     width: 50%;
-    margin-bottom: 25px;
+    margin-bottom: 16px;
 }
 
-.side-link.active img{
+.side-link.active {
+    background: var(--active-bg, rgba(6, 95, 212, 0.1));
+}
+
+.side-link.active img {
     padding-bottom: 2px;
-    border-bottom: 3px solid red;
+    border-bottom: 3px solid var(--primary-color, #c00);
+}
+
+.side-link.active p {
+    color: var(--primary-color, #c00);
+    font-weight: 600;
+}
+
+.badge {
+    position: absolute;
+    right: 8px;
+    background: var(--primary-color, #c00);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color, #ccc);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover, #999);
+}
+
+[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color, #555);
+}
+
+[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover, #777);
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        padding: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar:not(.small-sidebar) {
+        width: 70%;
+        transform: translateX(0);
+    }
 }

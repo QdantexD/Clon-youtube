@@ -9,96 +9,94 @@ import tech from '../../assets/tech.png'
 import music from '../../assets/music.png'
 import blogs from '../../assets/blogs.png'
 import news from '../../assets/news.png'
-import jack from '../../assets/jack.png'
-import simon from '../../assets/simon.png'
-import tom from '../../assets/tom.png'
-import megan from '../../assets/megan.png'
-import cameron from '../../assets/cameron.png'
+import history from '../../assets/history.png'
+import library from '../../assets/library.png'
+import subscription from '../../assets/subscriprion.png'
+import { useNavigate } from 'react-router-dom'
+import { useApp } from '../../context/AppContext'
 
-const Sidebar = ({sidebar,category,setCategory}) => {
-return (
-    <div className={`sidebar ${sidebar ? "" : "small-sidebar"}`} >
-        <div className="shortcut-links">
-            <div className={`side-link ${category===0?"active":""}`} onClick={()=>setCategory(0)}>
-                <img src={home} alt="" /><p>Home</p>
-            </div>
-            
-            <div className={`side-link ${category===20?"active":""}`} onClick={()=>setCategory(20)}>
-                <img src={game_icon} alt="" /><p>Gaming</p>
-            </div>
+const Sidebar = ({ sidebar, category, setCategory }) => {
+  const navigate = useNavigate();
+  const { subscribedChannels, watchHistory } = useApp();
 
-            <div className={`side-link ${category===2?"active":""}`} onClick={()=>setCategory(2)}>
-                <img src={automobiles} alt="" /><p>Automobiles</p>
-            </div>
+  const categories = [
+    { id: 0, name: 'Home', icon: home },
+    { id: 20, name: 'Gaming', icon: game_icon },
+    { id: 2, name: 'Automobiles', icon: automobiles },
+    { id: 17, name: 'Sport', icon: sport },
+    { id: 24, name: 'Entertainment', icon: entertainment },
+    { id: 28, name: 'Tech', icon: tech },
+    { id: 10, name: 'Music', icon: music },
+    { id: 22, name: 'Blogs', icon: blogs },
+    { id: 25, name: 'News', icon: news },
+  ];
 
-            <div className={`side-link ${category===17?"active":""}`} onClick={()=>setCategory(17)}>
-                <img src={sport} alt="" /><p>Sport</p>
-            </div>
+  const handleCategoryClick = (catId) => {
+    setCategory(catId);
+    navigate('/');
+  };
 
-            <div className={`side-link ${category===24?"active":""}`} onClick={()=>setCategory(24)}>
-                <img src={entertainment} alt="" /><p>Entertainment</p>
-            </div>
+  return (
+    <div className={`sidebar ${sidebar ? "" : "small-sidebar"}`}>
+      <div className="shortcut-links">
+        {categories.map((cat) => (
+          <div
+            key={cat.id}
+            className={`side-link ${category === cat.id ? "active" : ""}`}
+            onClick={() => handleCategoryClick(cat.id)}
+            title={cat.name}
+          >
+            <img src={cat.icon} alt={cat.name} />
+            <p>{cat.name}</p>
+          </div>
+        ))}
 
-            <div className={`side-link ${category===28?"active":""}`} onClick={()=>setCategory(28)}>
-                <img src={tech} alt="" /><p>Tech</p>
-            </div>
+        <hr />
 
-            <div className={`side-link ${category===10?"active":""}`} onClick={()=>setCategory(10)}>
-                <img src={music} alt="" /><p>Music</p>
-            </div>
-
-            <div className={`side-link ${category===22?"active":""}`} onClick={()=>setCategory(22)}>
-                <img src={blogs} alt="" /><p>Blogs</p>
-            </div>
-
-            <div className={`side-link ${category===25?"active":""}`} onClick={()=>setCategory(25)}>
-                <img src={news} alt="" /><p>News</p>
-            </div>
-
-<hr />
+        <div
+          className="side-link"
+          onClick={() => navigate('/library')}
+          title="Library"
+        >
+          <img src={library} alt="Library" />
+          <p>Library</p>
         </div>
-        <div>
-            <div className="subscribed-list">
-                <h3>Subcribed</h3>
-                <div className="sidelink">
-                    <img src={jack} alt="" /> <p>PewDiePie</p>
-                </div>
-            </div>
+
+        <div
+          className="side-link"
+          onClick={() => navigate('/history')}
+          title="History"
+        >
+          <img src={history} alt="History" />
+          <p>History</p>
+          {watchHistory.length > 0 && (
+            <span className="badge">{watchHistory.length}</span>
+          )}
         </div>
-        <div>
-            <div className="subscribed-list">
-                <h3>Subcribed</h3>
-                <div className="sidelink">
-                    <img src={simon} alt="" /> <p>MrBeast</p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div className="subscribed-list">
-                <h3>Subcribed</h3>
-                <div className="sidelink">
-                    <img src={tom} alt="" /> <p>Justin Bieber</p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div className="subscribed-list">
-                <h3>Subcribed</h3>
-                <div className="sidelink">
-                    <img src={megan} alt="" /> <p>5-Minutes Craft</p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div className="subscribed-list">
-                <h3>Subcribed</h3>
-                <div className="sidelink">
-                    <img src={cameron} alt="" /> <p>Nas Daily</p>
-                </div>
-            </div>
-        </div>
+
+        <hr />
+
+        {subscribedChannels.length > 0 && (
+          <div className="subscribed-section">
+            <h3>Subscriptions</h3>
+            {subscribedChannels.map((channel) => (
+              <div key={channel.id} className="sidelink" title={channel.title}>
+                <img src={channel.thumbnail} alt={channel.title} />
+                <p>{channel.title}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {subscribedChannels.length === 0 && (
+          <div className="subscribed-section">
+            <h3>Subscriptions</h3>
+            <p className="no-subscriptions">No subscriptions yet</p>
+          </div>
+        )}
+      </div>
     </div>
-    )
-}
+  );
+};
 
 export default Sidebar
