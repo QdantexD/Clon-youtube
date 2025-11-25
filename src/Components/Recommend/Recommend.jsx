@@ -12,23 +12,41 @@ const Recommend = ({ categoryId, currentVideoId }) => {
   useEffect(() => {
     const loadRecommendedVideos = async () => {
       setLoading(true);
+      setVideos([]);
+      
       try {
         let recommended = [];
         
         if (currentVideoId) {
+          console.log('Loading related videos for:', currentVideoId);
           // Fetch related videos
-          recommended = await fetchRelatedVideos(currentVideoId, 15);
+          recommended = await fetchRelatedVideos(currentVideoId, 20);
+          console.log('Related videos received:', recommended.length);
         } else if (categoryId) {
+          console.log('Loading videos for category:', categoryId);
           // Fetch videos from same category
-          recommended = await fetchVideos(categoryId, 15);
+          recommended = await fetchVideos(parseInt(categoryId) || 0, 20);
+          console.log('Category videos received:', recommended.length);
         } else {
+          console.log('Loading popular videos');
           // Fetch popular videos
-          recommended = await fetchVideos(0, 15);
+          recommended = await fetchVideos(0, 20);
+          console.log('Popular videos received:', recommended.length);
         }
         
-        // Filter out current video
-        recommended = recommended.filter(video => video.id !== currentVideoId);
-        setVideos(recommended.slice(0, 12));
+        if (recommended && recommended.length > 0) {
+          // Filter out current video - handle both string ID and object ID
+          const filtered = recommended.filter(video => {
+            const vidId = typeof video.id === 'string' ? video.id : (video.id?.videoId || video.id);
+            return vidId && vidId !== currentVideoId;
+          });
+          
+          console.log('Filtered videos (after removing current):', filtered.length);
+          setVideos(filtered.slice(0, 12));
+        } else {
+          console.warn('No recommended videos found');
+          setVideos([]);
+        }
       } catch (error) {
         console.error('Error loading recommended videos:', error);
         setVideos([]);
@@ -56,13 +74,25 @@ const Recommend = ({ categoryId, currentVideoId }) => {
     );
   }
 
-  if (videos.length === 0) {
+  if (videos.length === 0 && !loading) {
     return (
       <div className="recommended">
-        <p className="no-recommendations">No recommendations available</p>
+        <h3 className="recommended-title">Up next</h3>
+        <p className="no-recommendations">No recommendations available. Try refreshing the page.</p>
       </div>
     );
   }
+
+  // Helper function to extract video ID
+  const getVideoId = (video) => {
+    if (typeof video.id === 'string') {
+      return video.id;
+    }
+    if (video.id && video.id.videoId) {
+      return video.id.videoId;
+    }
+    return null;
+  };
 
   return (
     <div className="recommended">
@@ -72,7 +102,11 @@ const Recommend = ({ categoryId, currentVideoId }) => {
           return null;
         }
         
-        const videoId = video.id;
+        const videoId = getVideoId(video);
+        if (!videoId) {
+          return null;
+        }
+        
         const videoCategoryId = video.snippet?.categoryId || categoryId || 0;
         
         return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import "./Playvideo.css"
 import like from "../../assets/like.png"
 import dislike from "../../assets/dislike.png"
@@ -19,44 +19,82 @@ const Playvideo = ({ videoId, categoryId }) => {
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [saved, setSaved] = useState(false);
+  const iframeRef = useRef(null);
   const { addToHistory, subscribeToChannel, isSubscribed } = useApp();
 
   useEffect(() => {
     const loadVideoData = async () => {
-      if (!videoId) return;
+      // Validate videoId
+      if (!videoId || typeof videoId !== 'string' || videoId.trim() === '') {
+        setError('Invalid video ID provided');
+        setLoading(false);
+        return;
+      }
+      
+      const cleanVideoId = videoId.trim();
+      console.log('Loading video data for ID:', cleanVideoId);
       
       setLoading(true);
       setError(null);
+      setVideoData(null);
+      setChannelData(null);
+      setComments([]);
+      setLiked(false);
+      setDisliked(false);
+      setSaved(false);
       
       try {
-        const [video, commentsData] = await Promise.all([
-          fetchVideoDetails(videoId),
-          fetchVideoComments(videoId)
-        ]);
-
-        if (video) {
-          setVideoData(video);
-          
-          // Add to watch history
-          addToHistory({
-            id: videoId,
-            title: video.snippet.title,
-            thumbnail: video.snippet.thumbnails.medium.url,
-            channelTitle: video.snippet.channelTitle,
-            channelId: video.snippet.channelId,
-          });
-
-          // Fetch channel details
-          if (video.snippet.channelId) {
-            const channel = await fetchChannelDetails(video.snippet.channelId);
-            setChannelData(channel);
-          }
+        // Fetch video details first
+        const video = await fetchVideoDetails(cleanVideoId);
+        
+        if (!video) {
+          setError('Video not found. The video may have been removed, is private, or is unavailable.');
+          setLoading(false);
+          return;
         }
 
-        setComments(commentsData);
+        // Validate video data
+        if (!video.snippet) {
+          setError('Video data is incomplete. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        setVideoData(video);
+        console.log('Video data loaded successfully:', video.snippet.title);
+        
+        // Add to watch history
+        addToHistory({
+          id: cleanVideoId,
+          title: video.snippet.title,
+          thumbnail: video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url || '',
+          channelTitle: video.snippet.channelTitle || 'Unknown',
+          channelId: video.snippet.channelId || '',
+        });
+
+        // Fetch channel details and comments in parallel
+        const promises = [];
+        
+        if (video.snippet.channelId) {
+          promises.push(fetchChannelDetails(video.snippet.channelId));
+        } else {
+          promises.push(Promise.resolve(null));
+        }
+        
+        promises.push(fetchVideoComments(cleanVideoId));
+        
+        const [channel, commentsData] = await Promise.all(promises);
+        
+        if (channel) {
+          setChannelData(channel);
+          console.log('Channel data loaded:', channel.snippet?.title);
+        }
+        
+        setComments(commentsData || []);
+        console.log('Comments loaded:', commentsData?.length || 0);
       } catch (err) {
         console.error('Error loading video:', err);
-        setError('Failed to load video. Please try again.');
+        setError(err.message || 'Failed to load video. Please check your API key and internet connection, then try again.');
       } finally {
         setLoading(false);
       }
@@ -64,6 +102,19 @@ const Playvideo = ({ videoId, categoryId }) => {
 
     loadVideoData();
   }, [videoId, addToHistory]);
+
+  // Reset iframe when videoId changes
+  useEffect(() => {
+    if (iframeRef.current && videoId) {
+      // Force iframe reload
+      const iframe = iframeRef.current;
+      const src = iframe.src;
+      iframe.src = '';
+      setTimeout(() => {
+        iframe.src = src;
+      }, 100);
+    }
+  }, [videoId]);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -76,29 +127,47 @@ const Playvideo = ({ videoId, categoryId }) => {
   };
 
   const handleShare = async () => {
-    if (navigator.share && videoData) {
+    if (!videoData) return;
+    
+    const shareData = {
+      title: videoData.snippet.title,
+      text: videoData.snippet.description || videoData.snippet.title,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
       try {
-        await navigator.share({
-          title: videoData.snippet.title,
-          text: videoData.snippet.description,
-          url: window.location.href,
-        });
+        await navigator.share(shareData);
       } catch (err) {
-        // Fallback to copy
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
+        // User cancelled or error occurred
+        if (err.name !== 'AbortError') {
+          // Fallback to copy
+          try {
+            await navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
+          } catch (clipboardErr) {
+            console.error('Failed to copy to clipboard:', clipboardErr);
+          }
+        }
       }
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      // Fallback for browsers without Web Share API
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err);
+        // Last resort: show the URL
+        prompt('Copy this link:', window.location.href);
+      }
     }
   };
 
   const handleSubscribe = () => {
-    if (channelData) {
+    if (channelData && channelData.id) {
       subscribeToChannel(channelData.id, {
-        title: channelData.snippet.title,
-        thumbnail: channelData.snippet.thumbnails.default.url,
+        title: channelData.snippet?.title || 'Unknown Channel',
+        thumbnail: channelData.snippet?.thumbnails?.default?.url || '',
       });
     }
   };
@@ -118,58 +187,82 @@ const Playvideo = ({ videoId, categoryId }) => {
   if (error || !videoData) {
     return (
       <div className="play-video-error">
+        <h3>Unable to load video</h3>
         <p>{error || 'Video not found'}</p>
+        <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{ padding: '10px 20px', cursor: 'pointer' }}
+          >
+            Reload Page
+          </button>
+          <button 
+            onClick={() => window.history.back()} 
+            style={{ padding: '10px 20px', cursor: 'pointer' }}
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
   const isSubscribedToChannel = channelData ? isSubscribed(channelData.id) : false;
+  const videoTitle = videoData.snippet?.title || 'No Title';
+  const videoDescription = videoData.snippet?.description || 'No description available.';
+  const viewCount = value_converter(videoData.statistics?.viewCount || 0);
+  const likeCount = value_converter(videoData.statistics?.likeCount || 0);
+  const publishedAt = videoData.snippet?.publishedAt 
+    ? moment(videoData.snippet.publishedAt).fromNow() 
+    : "Unknown Time";
 
   return (
     <div className='play-video'>
-      <div className="video-wrapper">
-        <iframe
-          width="100%"
-          height="500"
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          title={videoData.snippet.title}
-        ></iframe>
-      </div>
+      {videoId && (
+        <div className="video-wrapper">
+          <iframe
+            ref={iframeRef}
+            key={videoId}
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            title={videoTitle}
+            loading="eager"
+          ></iframe>
+        </div>
+      )}
       
-      <h3>{videoData.snippet.title}</h3>
+      <h3>{videoTitle}</h3>
       
       <div className="play-video-info">
         <p>
-          {value_converter(videoData.statistics?.viewCount || 0)} views &bull;{" "}
-          {videoData.snippet?.publishedAt 
-            ? moment(videoData.snippet.publishedAt).fromNow() 
-            : "Unknown Time"}
+          {viewCount} views &bull; {publishedAt}
         </p>
         <div className="video-actions">
           <span 
             className={liked ? 'active' : ''} 
             onClick={handleLike}
+            title="Like this video"
           >
             <img src={like} alt="Like" />
-            {value_converter(videoData.statistics?.likeCount || 0)}
+            {likeCount}
           </span>
           <span 
             className={disliked ? 'active' : ''} 
             onClick={handleDislike}
+            title="Dislike this video"
           >
             <img src={dislike} alt="Dislike" />
           </span>
-          <span onClick={handleShare}>
+          <span onClick={handleShare} title="Share this video">
             <img src={share} alt="Share" />
             Share
           </span>
           <span 
             className={saved ? 'active' : ''} 
             onClick={() => setSaved(!saved)}
+            title="Save this video"
           >
             <img src={save} alt="Save" />
             Save
@@ -180,14 +273,17 @@ const Playvideo = ({ videoId, categoryId }) => {
       <hr />
       
       <div className="publisher">
-        {channelData && (
+        {channelData && channelData.snippet ? (
           <>
             <img 
-              src={channelData.snippet.thumbnails.default.url} 
-              alt={channelData.snippet.title} 
+              src={channelData.snippet.thumbnails?.default?.url || user_profile} 
+              alt={channelData.snippet.title || 'Channel'} 
+              onError={(e) => {
+                e.target.src = user_profile;
+              }}
             />
             <div>
-              <p>{channelData.snippet.title}</p>
+              <p>{channelData.snippet.title || 'Unknown Channel'}</p>
               <span>
                 {value_converter(channelData.statistics?.subscriberCount || 0)} Subscribers
               </span>
@@ -199,11 +295,18 @@ const Playvideo = ({ videoId, categoryId }) => {
               {isSubscribedToChannel ? 'Subscribed' : 'Subscribe'}
             </button>
           </>
-        )}
+        ) : videoData.snippet ? (
+          <div>
+            <p>{videoData.snippet.channelTitle || 'Unknown Channel'}</p>
+            <span>Channel information unavailable</span>
+          </div>
+        ) : null}
       </div>
 
       <div className='vid-description'>
-        <p>{videoData.snippet.description || 'No description available.'}</p>
+        <p style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+          {videoDescription}
+        </p>
         <hr />
         <h4>{comments.length} Comments</h4>
         <div className="comments-section">
@@ -213,17 +316,20 @@ const Playvideo = ({ videoId, categoryId }) => {
               if (!comment) return null;
               
               return (
-                <div key={commentItem.id || index} className="comment">
+                <div key={commentItem.id || `comment-${index}`} className="comment">
                   <img 
                     src={comment.authorProfileImageUrl || user_profile} 
-                    alt={comment.authorDisplayName} 
+                    alt={comment.authorDisplayName || 'User'} 
+                    onError={(e) => {
+                      e.target.src = user_profile;
+                    }}
                   />
                   <div className="comment-content">
                     <h3>
-                      {comment.authorDisplayName}{" "}
+                      {comment.authorDisplayName || 'Anonymous'}{" "}
                       <span>{moment(comment.publishedAt).fromNow()}</span>
                     </h3>
-                    <p>{comment.textDisplay}</p>
+                    <p style={{ wordWrap: 'break-word' }}>{comment.textDisplay || comment.textOriginal || ''}</p>
                     <div className="comment-action">
                       <img src={like} alt="Like" />
                       <span>{value_converter(comment.likeCount || 0)}</span>
